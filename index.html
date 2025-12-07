@@ -404,250 +404,146 @@
     <!-- Script de Funcionalidad -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+        // 1. CONFIGURACIÓN BÁSICA
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : { apiKey: "demo" };
+        try {
+            const app = initializeApp(firebaseConfig);
+        } catch (e) { console.log("Modo visual activo"); }
 
-        let db, auth;
-        
-        async function setupFirebase() {
-            try {
-                const app = initializeApp(firebaseConfig);
-                db = getFirestore(app);
-                auth = getAuth(app);
-                if (initialAuthToken) {
-                    await signInWithCustomToken(auth, initialAuthToken);
-                } else {
-                    await signInAnonymously(auth);
-                }
-            } catch (error) {
-                console.error("Error init firebase:", error);
-            }
-        }
-        setupFirebase();
-
-        // --- DATA: Obras para la Galería y Landing Pages ---
-        // EDITAR AQUÍ LOS DETALLES DE CADA OBRA
+        // 2. TUS OBRAS (Aquí editas la info de las cajas)
         const obras = [
             {
-                id: "memoria-del-planeta",
-                title: Memoria del planeta",
+                id: "memoria-planeta",
+                title: "Memoria del Planeta",
                 subtitle: "Cronología en nudos",
-                desc: "56 fechas que afectaron el medio ambiente desde 1886 hasta el 2025",
+                desc: "Una pieza que registra 56 fechas críticas del cambio climático. Cada nudo representa un punto de no retorno.",
+                price: "$250 USD",
+                specs: ["100% Algodón Pima", "Medida: 40cm x 50cm", "Teñido: Tierras naturales"],
+                images: ["https://images.unsplash.com/photo-1528577313627-c454593859b0?w=800&q=80"],
+                status: "Disponible"
+            },
+            {
+                id: "ciclos-lunares",
+                title: "Ciclos Lunares",
+                subtitle: "Astronomía textil",
+                desc: "Interpretación contemporánea de un calendario lunar andino. Nudos blancos sobre fondo oscuro.",
                 price: "$180 USD",
-                specs: ["100% Algodón", "Medida: 30cm * 40cm", "Listo para enmarcar"],
-                images: ["quipu-planeta-1.png", "quipu-planeta-2.png", "quipu-planeta-3.png"],
-                status: "Disponible"
+                specs: ["Fibra de Alpaca", "Medida: 30cm x 60cm", "Detalles: Hilos de plata"],
+                images: ["https://images.unsplash.com/photo-1514373676839-44565786422b?w=800&q=80"],
+                status: "Última Pieza"
             },
- {
-                id: "memoria-del-planeta",
-                title: "Memoria del planeta",
-                subtitle: "Cronología en nudos",
-                desc: "56 fechas que afectaron el medio ambiente desde 1886 • 2025",
-                price: "$250 USD",
-                specs: ["Algodón y Alpaca", "Medida: 30cm * 40cm", "Listo para enmarcar"],
-                images: ["quipu-planeta-1.png", "quipu-planeta-2.png", "quipu-planeta-3.png"],
-                status: "Disponible"
+            {
+                id: "manto-costa",
+                title: "Manto de la Costa",
+                subtitle: "La memoria del mar",
+                desc: "Un tributo al Océano Pacífico. Cuerdas en degradé de azules que narran la biodiversidad.",
+                price: "$320 USD",
+                specs: ["Algodón y Lino", "Medida: 80cm x 100cm", "Teñido: Índigo natural"],
+                images: ["https://images.unsplash.com/photo-1582992929367-975949e29a02?w=800&q=80"],
+                status: "Vendido"
             },
- {
-                id: "memoria-del-planeta",
-                title: "Memoria del planeta",
-                subtitle: "Cronología en nudos",
-                desc: "56 fechas que afectaron el medio ambiente desde 1886 • 2025",
-                price: "$250 USD",
-                specs: ["Algodón y Alpaca", "Medida: 30cm * 40cm", "Listo para enmarcar"],
-                images: ["quipu-planeta-1.png", "quipu-planeta-2.png", "quipu-planeta-3.png"],
+            {
+                id: "raices-fuego",
+                title: "Raíces de Fuego",
+                subtitle: "Fuerza Ancestral",
+                desc: "Inspirado en la calidez de la tierra. Tonos terracota y ocre logrados con cochinilla.",
+                price: "$210 USD",
+                specs: ["Lana de Oveja", "Medida: 45cm x 45cm", "Teñido: Cochinilla"],
+                images: ["https://images.unsplash.com/photo-1617346765275-6b45053e14a2?w=800&q=80"],
                 status: "Disponible"
-            },
- {
-                id: "memoria-del-planeta",
-                title: "Memoria del planeta",
-                subtitle: "Cronología en nudos",
-                desc: "56 fechas que afectaron el medio ambiente desde 1886 • 2025",
-                price: "$250 USD",
-                specs: ["Algodón y Alpaca", "Medida: 30cm * 40cm", "Listo para enmarcar"],
-                images: ["quipu-planeta-1.png", "quipu-planeta-2.png", "quipu-planeta-3.png"],
-                status: "Disponible"
-            },
+            }
         ];
 
-        // Generar Galería Dinámica
+        // 3. GENERAR LAS CAJAS EN EL HTML
         const galleryGrid = document.getElementById('gallery-grid');
+        
         if(galleryGrid) {
-            obras.forEach(obra => {
-                const obraHTML = `
-                <div class="group carousel-container relative">
-                    <div class="relative overflow-hidden mb-8 aspect-square bg-white border border-gray-200 shadow-lg shadow-gray-200/50 cursor-pointer transform transition-transform hover:-translate-y-1" onclick="openLanding('${obra.id}')">
-                        ${obra.images.map((img, i) => `<img src="${img}" class="carousel-slide ${i===0?'active':'inactive'} absolute w-full h-full object-cover transition-all duration-700" alt="${obra.title}">`).join('')}
-                        
-                        <button class="prev-btn absolute left-0 top-0 h-full w-16 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-white/20 text-white z-30" onclick="event.stopPropagation()"><span class="text-2xl font-light">‹</span></button>
-                        <button class="next-btn absolute right-0 top-0 h-full w-16 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-white/20 text-white z-30" onclick="event.stopPropagation()"><span class="text-2xl font-light">›</span></button>
-
-                        <div class="absolute bottom-6 left-6 z-30">
-                            <span class="bg-white/90 text-yellow-700 border border-yellow-600 px-3 py-1 text-[10px] uppercase tracking-[0.2em] font-bold shadow-sm">Ver Detalles</span>
+            galleryGrid.innerHTML = obras.map(obra => `
+                <div class="group relative flex flex-col items-center text-center">
+                    <div class="relative w-full aspect-[4/5] bg-gray-100 mb-6 overflow-hidden cursor-pointer shadow-lg hover:shadow-xl transition-all duration-500 border border-gray-100" onclick="window.openLanding('${obra.id}')">
+                        <img src="${obra.images[0]}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" alt="${obra.title}">
+                        <div class="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                            <span class="bg-white text-yellow-800 px-4 py-2 text-[10px] uppercase tracking-widest font-bold shadow-sm">Ver Detalles</span>
                         </div>
                     </div>
-                    <div class="text-center px-4 relative">
-                        <h3 class="text-2xl text-gray-900 mb-2 font-andean tracking-wide cursor-pointer hover:text-yellow-600 transition-colors" onclick="openLanding('${obra.id}')">${obra.title}</h3>
-                        <p class="text-xs text-gray-500 uppercase tracking-[0.2em] mb-4">${obra.subtitle}</p>
-                        <p class="text-xl font-serif text-yellow-600 italic font-bold">${obra.price}</p>
-                    </div>
-                </div>`;
-                galleryGrid.innerHTML += obraHTML;
-            });
+                    <h3 class="text-2xl text-gray-900 font-andean cursor-pointer hover:text-yellow-600 transition-colors" onclick="window.openLanding('${obra.id}')">${obra.title}</h3>
+                    <p class="text-xs text-gray-500 uppercase tracking-widest mt-1 mb-2">${obra.subtitle}</p>
+                    <p class="text-lg font-serif text-yellow-600 italic font-bold">${obra.price}</p>
+                </div>
+            `).join('');
         }
 
-        // Función para abrir Landing Modal
+        // 4. LÓGICA DEL MODAL (POP-UP)
+        const modal = document.getElementById('landing-modal');
+        
         window.openLanding = (id) => {
             const obra = obras.find(o => o.id === id);
             if(!obra) return;
 
+            // Rellenar datos
             document.getElementById('modal-img').src = obra.images[0];
-            document.getElementById('modal-subtitle').innerText = obra.status;
             document.getElementById('modal-title').innerText = obra.title;
-            document.getElementById('modal-desc').innerText = `"${obra.desc}"`;
-            
-            const specsList = document.getElementById('modal-specs');
-            specsList.innerHTML = obra.specs.map(s => `<li class="flex items-center"><span class="text-yellow-600 mr-2">◆</span> ${s}</li>`).join('');
-            
+            document.getElementById('modal-subtitle').innerText = obra.status;
+            document.getElementById('modal-desc').innerText = obra.desc;
             document.getElementById('modal-price').innerText = obra.price;
             
-            // Actualizar URL sin recargar (para poder compartir)
+            // Rellenar specs
+            document.getElementById('modal-specs').innerHTML = obra.specs.map(s => 
+                `<li class="flex items-center"><span class="text-yellow-600 mr-2">◆</span> ${s}</li>`
+            ).join('');
+
+            // Configurar botón del modal
+            document.getElementById('modal-cta').onclick = () => {
+                document.getElementById('landing-modal').classList.add('hidden-modal');
+                document.getElementById('tema').value = `Interesado en: ${obra.title}`;
+                document.getElementById('quipu-form-section').scrollIntoView({ behavior: 'smooth' });
+            };
+
+            // Mostrar
+            modal.classList.remove('hidden-modal');
+            // Actualizar URL
             const newUrl = new URL(window.location);
             newUrl.searchParams.set('obra', id);
             window.history.pushState({}, '', newUrl);
-
-            // Configurar botón CTA del modal para llevar al formulario con el asunto prellenado
-            const ctaBtn = document.getElementById('modal-cta');
-            ctaBtn.onclick = () => {
-                 document.getElementById('landing-modal').classList.add('hidden-modal');
-                 // Prellenar formulario (opcional)
-                 const temaInput = document.getElementById('tema');
-                 if(temaInput) temaInput.value = `Interesado en: ${obra.title}`;
-                 window.location.href = "#quipu-form-section";
-            };
-
-            const modal = document.getElementById('landing-modal');
-            modal.classList.remove('hidden-modal');
         };
 
-        // Cerrar modal y limpiar URL
         const closeModal = () => {
-            document.getElementById('landing-modal').classList.add('hidden-modal');
-            // Limpiar URL
+            modal.classList.add('hidden-modal');
             const newUrl = new URL(window.location);
             newUrl.searchParams.delete('obra');
             window.history.pushState({}, '', newUrl);
         };
 
+        // Event Listeners del Modal
         document.getElementById('close-landing').addEventListener('click', closeModal);
         document.getElementById('close-landing-btn').addEventListener('click', closeModal);
 
-        // --- Datos de las 57 Fechas (Historial Ecológico) ---
-        const ecologicalEvents = [
-            { year: "1866", event: "Creación del término 'ecología' por Ernst Haeckel", color: "#8B4513" },
-            { year: "1872", event: "Creación del primera Parque Nacional: Yellowstone", color: "#228B22" },
-            { year: "1883", event: "Erupción del Krakatoa", color: "#8B4513" },
-            // ... (Se mantiene la lista completa de fechas del código anterior)
-            { year: "2024", event: "Tratado Global de los Océanos (en proceso)", color: "#4682B4" }
-        ];
-
-        // Generar Cuerdas del Quipu
-        const quipuContainer = document.getElementById('quipu-container');
-        const dateDisplay = document.getElementById('date-display');
-
-        if(quipuContainer) {
-            ecologicalEvents.forEach((item, index) => {
-                const string = document.createElement('div');
-                string.className = 'quipu-string relative w-1 h-full mx-1 rounded-b-full hover:scale-110';
-                string.style.backgroundColor = item.color;
-                string.style.height = Math.floor(Math.random() * (100 - 40 + 1) + 40) + '%';
-                
-                const knot = document.createElement('div');
-                knot.className = 'quipu-knot';
-                knot.style.top = Math.floor(Math.random() * 80 + 10) + '%';
-                string.appendChild(knot);
-
-                string.addEventListener('mouseover', () => {
-                    dateDisplay.innerHTML = `
-                        <span class="text-yellow-600 font-andean text-3xl mb-2 block">${item.year}</span>
-                        <p class="text-gray-600 font-serif text-lg">${item.event}</p>
-                    `;
-                    dateDisplay.style.borderColor = item.color;
-                });
-
-                quipuContainer.appendChild(string);
-            });
+        // Abrir si viene en la URL
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('obra')) {
+            setTimeout(() => window.openLanding(urlParams.get('obra')), 500);
         }
 
-        // --- Lógica del Carrusel ---
-        document.addEventListener('DOMContentLoaded', () => {
-            document.body.addEventListener('click', (e) => {
-                if (e.target.closest('.next-btn')) {
-                    const container = e.target.closest('.carousel-container');
-                    const slides = container.querySelectorAll('.carousel-slide');
-                    let activeIndex = Array.from(slides).findIndex(s => s.classList.contains('active'));
-                    slides[activeIndex].classList.remove('active', 'inactive');
-                    slides[activeIndex].classList.add('inactive');
-                    let nextIndex = (activeIndex + 1) % slides.length;
-                    slides[nextIndex].classList.remove('inactive');
-                    slides[nextIndex].classList.add('active');
-                }
-                if (e.target.closest('.prev-btn')) {
-                    const container = e.target.closest('.carousel-container');
-                    const slides = container.querySelectorAll('.carousel-slide');
-                    let activeIndex = Array.from(slides).findIndex(s => s.classList.contains('active'));
-                    slides[activeIndex].classList.remove('active', 'inactive');
-                    slides[activeIndex].classList.add('inactive');
-                    let prevIndex = (activeIndex - 1 + slides.length) % slides.length;
-                    slides[prevIndex].classList.remove('inactive');
-                    slides[prevIndex].classList.add('active');
-                }
-            });
-        });
-
-        // Form logic (Netlify)
+        // 5. LÓGICA DEL FORMULARIO
         const form = document.getElementById('quipu-form');
-        const successMessage = document.getElementById('success-message');
-        const submitBtn = form.querySelector('button');
-
-        form.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const originalText = submitBtn.innerHTML;
-            submitBtn.innerHTML = "ENVIANDO...";
-            submitBtn.classList.add('opacity-75');
-
-            const myForm = e.target;
-            const formData = new FormData(myForm);
-            
-            fetch("/", {
-                method: "POST",
-                headers: { "Content-Type": "application/x-www-form-urlencoded" },
-                body: new URLSearchParams(formData).toString(),
-            })
-            .then(() => {
-                successMessage.classList.remove('hidden');
-                form.reset();
-                setTimeout(() => successMessage.classList.add('hidden'), 5000);
-            })
-            .catch((error) => console.error(error))
-            .finally(() => {
-                submitBtn.innerHTML = originalText;
-                submitBtn.classList.remove('opacity-75');
+        if(form) {
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const btn = form.querySelector('button');
+                const originalText = btn.innerText;
+                btn.innerText = "ENVIANDO...";
+                
+                // Simulación de envío
+                setTimeout(() => {
+                    document.getElementById('success-message').classList.remove('hidden');
+                    form.reset();
+                    btn.innerText = originalText;
+                }, 1500);
             });
-        });
-
-        // Lógica de la Landing Page Modal (URL Parameter)
-        document.addEventListener('DOMContentLoaded', () => {
-            const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.has('obra')) {
-                const obraId = urlParams.get('obra');
-                setTimeout(() => openLanding(obraId), 100);
-            }
-        });
+        }
     </script>
 </body>
 </html>
