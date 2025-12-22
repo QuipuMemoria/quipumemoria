@@ -496,7 +496,8 @@
             window.history.pushState({}, '', newUrl);
 
             const ctaBtn = document.getElementById('modal-cta');
-            ctaBtn.onclick = () => {
+          ctaBtn.onclick = null; // Importante para borrar la función vieja
+            ctaBtn.href = `mailto:quipumemoria@gmail.com?subject=Deseo adquirir: ${obra.title}&body=Hola, estoy interesado en la obra "${obra.title}". Por favor bríndenme más detalles.`;
                  document.getElementById('landing-modal').classList.add('hidden-modal');
                  window.location.href = "#contacto";
             };
@@ -677,6 +678,7 @@
 </script>
 </body>
 </html>
+
 
 
 
