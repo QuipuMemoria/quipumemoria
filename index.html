@@ -414,7 +414,7 @@
                 desc: "56 fechas que afectaron el medio ambiente desde 1886 hasta el 2025",
                 price: "$120 USD",
                 specs: ["100% Algodón", "Medida: 30cm x 40cm", "entregado enmarcado"],
-                images: ["obraquipuplaneta1.png", "obraquipuplaneta2.png",
+                images: ["obraquipuplaneta1.png", "obraquipuplaneta2.png"],
                 status: "Disponible"
             },
             {
@@ -633,7 +633,7 @@
 
   // Función principal que se ejecuta al cargar la web
   window.onload = function() {
-    // 1. Detectar parámetros en la URL (ej: ?obra=hilo-solar)
+    // 1. Detectar parámetros en la URL (ej: ?obra=obraquiplaneta1)
     const params = new URLSearchParams(window.location.search);
     const obraID = params.get('obra'); // Busca el valor de "obra"
 
@@ -676,6 +676,7 @@
 </script>
 </body>
 </html>
+
 
 
 
