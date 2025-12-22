@@ -476,11 +476,13 @@
             });
         }
 
-        // Abrir Landing Modal
+       // Abrir Landing Modal (CÓDIGO CORREGIDO)
         window.openLanding = (id) => {
+            // 1. Buscamos la obra en la lista
             const obra = obras.find(o => o.id === id);
             if(!obra) return;
 
+            // 2. Llenamos los datos visuales
             document.getElementById('modal-img').src = obra.images[0];
             document.getElementById('modal-subtitle').innerText = obra.status;
             document.getElementById('modal-title').innerText = obra.title;
@@ -491,16 +493,27 @@
             
             document.getElementById('modal-price').innerText = obra.price;
             
+            // 3. Actualizamos la URL del navegador sin recargar
             const newUrl = new URL(window.location);
             newUrl.searchParams.set('obra', id);
             window.history.pushState({}, '', newUrl);
 
+            // 4. CONFIGURACIÓN DEL BOTÓN DE CORREO (AQUÍ ESTABA EL CAMBIO)
             const ctaBtn = document.getElementById('modal-cta');
-          ctaBtn.onclick = null; // Importante para borrar la función vieja
-            ctaBtn.href = `mailto:quipumemoria@gmail.com?subject=Deseo adquirir: ${obra.title}&body=Hola, estoy interesado en la obra "${obra.title}". Por favor bríndenme más detalles.`;
-                 document.getElementById('landing-modal').classList.add('hidden-modal');
-                 window.location.href = "#contacto";
-            };
+            
+            // Importante: Limpiamos cualquier "click" anterior para que no baje al formulario
+            ctaBtn.onclick = null; 
+            
+            // Creamos el enlace de correo de forma segura
+            // Usamos encodeURIComponent para manejar espacios y tildes correctamente
+            const asunto = encodeURIComponent("Consulta sobre obra: " + obra.title);
+            const cuerpo = encodeURIComponent("Hola, estoy interesado en adquirir la obra " + obra.title + ". Quisiera más información.");
+            
+            ctaBtn.href = "mailto:quipumemoria@gmail.com?subject=" + asunto + "&body=" + cuerpo;
+
+            // 5. Mostramos el modal
+            document.getElementById('landing-modal').classList.remove('hidden-modal');
+        };
 
             document.getElementById('landing-modal').classList.remove('hidden-modal');
         };
@@ -678,6 +691,7 @@
 </script>
 </body>
 </html>
+
 
 
 
